@@ -73,7 +73,7 @@ repositories {
    ```xml
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
    ```
 
 3. **Minimum SDK**: Verify `android/app/build.gradle.kts` has:
