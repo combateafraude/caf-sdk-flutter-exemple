@@ -49,6 +49,5 @@
     <string>Allows access to the camera to capture document images.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allows access to stored files and images for processing, if necessary.</string>
-    <key>UILaunchStoryboardName</key>
 </dict>
 </plist>
