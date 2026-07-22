@@ -1,0 +1,11 @@
+{
+  "documentDetector": true,
+  "faceLiveness": true,
+  "documentDetectorUI": true,
+  "faceLivenessUI": true,
+  "livenessProviders": [
+    "iproov-lite",
+    "payface",
+    "facetec"
+  ]
+}

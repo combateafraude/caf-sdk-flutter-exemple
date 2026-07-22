@@ -28,10 +28,17 @@ class CafSdkExamplePage extends StatefulWidget {
   State<CafSdkExamplePage> createState() => _CafSdkExamplePageState();
 }
 
+class _CafEventEntry {
+  const _CafEventEntry({required this.eventName, required this.response});
+
+  final String eventName;
+  final String response;
+}
+
 class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
   final _cafSdk = CafSdk();
-  final List<Map<String, dynamic>> _events = [];
-  StreamSubscription? _eventSubscription;
+  final List<_CafEventEntry> _events = [];
+  StreamSubscription<CafResponse>? _eventSubscription;
 
   final String _mobileToken = "token";
   final String _personId = "personId";
@@ -59,13 +66,64 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
     _eventSubscription = _cafSdk.eventStream.listen((event) {
       if (!mounted) return;
 
+      final entry = _mapCafResponseToEventEntry(event);
+      if (entry == null) return;
+
       setState(() {
-        _events.add({
-          'eventName': event['eventName'],
-          'response': event['response'].toString(),
-        });
+        _events.add(entry);
       });
     });
+  }
+
+  _CafEventEntry? _mapCafResponseToEventEntry(CafResponse event) {
+    if (event.loading) {
+      return const _CafEventEntry(
+        eventName: CafSdkEventName.loading,
+        response: 'Loading...',
+      );
+    }
+    if (event.loaded) {
+      return const _CafEventEntry(
+        eventName: CafSdkEventName.loaded,
+        response: 'Session loaded',
+      );
+    }
+    if (event.cancelled) {
+      return const _CafEventEntry(
+        eventName: CafSdkEventName.cancelled,
+        response: 'Cancelled by user',
+      );
+    }
+    if (event.success != null) {
+      final success = event.success!;
+      return _CafEventEntry(
+        eventName: CafSdkEventName.success,
+        response:
+            '${success.moduleName} -> ${success.signedResponse ?? 'null'}',
+      );
+    }
+    if (event.error != null) {
+      final error = event.error!;
+      return _CafEventEntry(
+        eventName: CafSdkEventName.error,
+        response: '${error.type} - ${error.description ?? ''}',
+      );
+    }
+    if (event.failure != null) {
+      final failure = event.failure!;
+      return _CafEventEntry(
+        eventName: CafSdkEventName.failure,
+        response: '${failure.type} - ${failure.description ?? ''}',
+      );
+    }
+    if (event.log != null) {
+      final log = event.log!;
+      return _CafEventEntry(
+        eventName: CafSdkEventName.log,
+        response: '${log.level} - ${log.message}',
+      );
+    }
+    return null;
   }
 
   Future<void> _initializeCafSdk() async {
@@ -110,6 +168,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
         configuration: CafSdkBuilderConfiguration(
           presentationOrder: presentationOrder,
           waitForAllServices: true,
+          enableSecurityModule: false // Debug
         ),
       );
 
@@ -117,21 +176,19 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
       CafDocumentDetectorConfiguration? documentDetectorConfig;
       if (_useDocumentDetector) {
         documentDetectorConfig = CafDocumentDetectorConfiguration(
-          configuration: CafDocumentDetectorBuilderConfiguration(
-            flow: [
-              CafDocumentDetectorFlow(document: CafDocument.rgFront),
-              CafDocumentDetectorFlow(document: CafDocument.rgBack),
-            ],
-            uploadSettings: CafDocumentDetectorUploadSettings(enable: false),
-            manualCaptureEnabled: false,
-            manualCaptureTime: 45,
-            showPopup: true,
-            previewShow: false,
-            securitySettings: CafDocumentDetectorSecuritySettings(
-              useAdb: true,
-              useDebug: true,
-              useDevelopmentMode: true,
-            ),
+          flow: [
+            CafDocumentDetectorFlow(document: CafDocument.rgFront),
+            CafDocumentDetectorFlow(document: CafDocument.rgBack),
+          ],
+          uploadSettings: CafDocumentDetectorUploadSettings(enable: false),
+          manualCaptureEnabled: false,
+          manualCaptureTime: 45,
+          showPopup: true,
+          previewShow: false,
+          securitySettings: CafDocumentDetectorSecuritySettings(
+            useAdb: true,
+            useDebug: true,
+            useDevelopmentMode: true,
           ),
         );
       }
@@ -140,46 +197,53 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
       CafDocumentDetectorUIConfiguration? documentDetectorUIConfig;
       if (_useDocumentDetectorUI) {
         documentDetectorUIConfig = CafDocumentDetectorUIConfiguration(
-          configuration: CafDocumentDetectorBuilderConfiguration(
-            flow: [
-              CafDocumentDetectorFlow(document: CafDocument.rgFront),
-              CafDocumentDetectorFlow(document: CafDocument.rgBack),
-              CafDocumentDetectorFlow(document: CafDocument.rgFull),
-              CafDocumentDetectorFlow(document: CafDocument.cnhFront),
-              CafDocumentDetectorFlow(document: CafDocument.cnhBack),
-              CafDocumentDetectorFlow(document: CafDocument.cnhFull),
-              CafDocumentDetectorFlow(document: CafDocument.crlv),
-              CafDocumentDetectorFlow(document: CafDocument.rneFront),
-              CafDocumentDetectorFlow(document: CafDocument.rneBack),
-              CafDocumentDetectorFlow(document: CafDocument.ctpsFront),
-              CafDocumentDetectorFlow(document: CafDocument.ctpsBack),
-              CafDocumentDetectorFlow(document: CafDocument.passport),
-              CafDocumentDetectorFlow(document: CafDocument.any),
-            ],
-            uploadSettings: CafDocumentDetectorUploadSettings(enable: true),
-            manualCaptureEnabled: false,
-            manualCaptureTime: 45,
-            showPopup: true,
-            previewShow: false,
-            securitySettings: CafDocumentDetectorSecuritySettings(
-              useAdb: true,
-              useDebug: true,
-              useDevelopmentMode: true,
-            ),
+          flow: [
+            CafDocumentDetectorFlow(document: CafDocument.rgFront),
+            CafDocumentDetectorFlow(document: CafDocument.rgBack),
+            CafDocumentDetectorFlow(document: CafDocument.rgFull),
+            CafDocumentDetectorFlow(document: CafDocument.cnhFront),
+            CafDocumentDetectorFlow(document: CafDocument.cnhBack),
+            CafDocumentDetectorFlow(document: CafDocument.cnhFull),
+            CafDocumentDetectorFlow(document: CafDocument.crlv),
+            CafDocumentDetectorFlow(document: CafDocument.rneFront),
+            CafDocumentDetectorFlow(document: CafDocument.rneBack),
+            CafDocumentDetectorFlow(document: CafDocument.ctpsFront),
+            CafDocumentDetectorFlow(document: CafDocument.ctpsBack),
+            CafDocumentDetectorFlow(document: CafDocument.passport),
+            CafDocumentDetectorFlow(document: CafDocument.any),
+          ],
+          uploadSettings: CafDocumentDetectorUploadSettings(
+            enable: true,
+            fileFormats: [
+              CafFileFormat.png,
+              CafFileFormat.jpg,
+              CafFileFormat.jpeg,
+              CafFileFormat.pdf,
+              CafFileFormat.heif,
+            ]
           ),
-          instructionScreenConfiguration:
-              CafDocumentDetectorUIBuilderInstructionScreenConfiguration(
+          manualCaptureEnabled: false,
+          manualCaptureTime: 45,
+          showPopup: true,
+          previewShow: false,
+          securitySettings: CafDocumentDetectorSecuritySettings(
+            useAdb: true,
+            useDebug: true,
+            useDevelopmentMode: true,
+          ),
+          instructionScreen:
+              CafDocumentDetectorUIInstructionScreenConfiguration(
                 enable: true,
-                captureSteps: ["Capture Step 1", "Capture Step 2"],
-                uploadTitle: "Upload Title",
-                uploadSteps: ["Upload Step 1", "Upload Step 2"],
-                description: "Description",
-                buttonText: "Button Text",
+                captureTitle: 'Capture Title',
+                captureSteps: ['Capture Step 1', 'Capture Step 2'],
+                uploadTitle: 'Upload Title',
+                uploadSteps: ['Upload Step 1', 'Upload Step 2'],
+                buttonText: 'Button Text',
               ),
-          documentSelectionScreenConfiguration:
-              CafDocumentDetectorUIBuilderDocumentSelectionScreenConfiguration(
-                title: "Document Selection Title",
-                description: "Document Selection Description",
+          documentSelectionScreen:
+              CafDocumentDetectorUIDocumentSelectionScreenConfiguration(
+                title: 'Document Selection Title',
+                description: 'Document Selection Description',
               ),
         );
       }
@@ -188,10 +252,9 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
       CafFaceLivenessConfiguration? faceLivenessConfig;
       if (_useFaceLiveness) {
         faceLivenessConfig = CafFaceLivenessConfiguration(
-          configuration: CafFaceLivenessBuilderConfiguration(
-            loading: true,
-            debugModeEnabled: true,
-          ),
+          loading: true,
+          debugModeEnabled: true,
+          payFaceDebugMode: true, // Debug
         );
       }
 
@@ -199,22 +262,20 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
       CafFaceLivenessUIConfiguration? faceLivenessUIConfig;
       if (_useFaceLivenessUI) {
         faceLivenessUIConfig = CafFaceLivenessUIConfiguration(
-          configuration: CafFaceLivenessBuilderConfiguration(
-            loading: true,
-            debugModeEnabled: true,
+          loading: true,
+          debugModeEnabled: true,
+          payFaceDebugMode: true, // Debug
+          instructionScreen: CafFaceLivenessUIInstructionScreenConfiguration(
+            title: 'Face Liveness',
+            description:
+                'Position your face in the center and follow the instructions',
+            steps: [
+              'Center your face',
+              'Follow the instructions',
+              'Stay still',
+            ],
+            buttonText: 'Start',
           ),
-          instructionScreenConfiguration:
-              CafFaceLivenessUIBuilderInstructionScreenConfiguration(
-                title: "Face Liveness",
-                description:
-                    "Position your face in the center and follow the instructions",
-                steps: [
-                  "Center your face",
-                  "Follow the instructions",
-                  "Stay still",
-                ],
-                buttonText: "Start",
-              ),
         );
       }
 
@@ -529,7 +590,7 @@ class _ActionButtons extends StatelessWidget {
 class _EventsCard extends StatelessWidget {
   const _EventsCard({required this.events});
 
-  final List<Map<String, dynamic>> events;
+  final List<_CafEventEntry> events;
 
   @override
   Widget build(BuildContext context) {
@@ -584,7 +645,7 @@ class _EventsCard extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        event['eventName'],
+                                        event.eventName,
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -596,7 +657,7 @@ class _EventsCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(
-                                  event['response'],
+                                  event.response,
                                   style: const TextStyle(fontSize: 14),
                                 ),
                               ],
