@@ -9,5 +9,6 @@ void main() {
     expect(find.text('CAF SDK Example'), findsOneWidget);
     expect(find.text('Initialize SDK'), findsOneWidget);
     expect(find.text('CAF SDK Configuration'), findsOneWidget);
+    expect(find.text('Modules'), findsOneWidget);
   });
 }

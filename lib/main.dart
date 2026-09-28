@@ -168,7 +168,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
         configuration: CafSdkBuilderConfiguration(
           presentationOrder: presentationOrder,
           waitForAllServices: true,
-          enableSecurityModule: false // Debug
+          enableSecurityModule: false, // Debug
         ),
       );
 
@@ -185,7 +185,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
           manualCaptureTime: 45,
           showPopup: true,
           previewShow: false,
-          securitySettings: CafDocumentDetectorSecuritySettings(
+          securitySettings: const CafDocumentDetectorSecuritySettings(
             useAdb: true,
             useDebug: true,
             useDevelopmentMode: true,
@@ -226,7 +226,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
           manualCaptureTime: 45,
           showPopup: true,
           previewShow: false,
-          securitySettings: CafDocumentDetectorSecuritySettings(
+          securitySettings: const CafDocumentDetectorSecuritySettings(
             useAdb: true,
             useDebug: true,
             useDevelopmentMode: true,
@@ -235,13 +235,13 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
               CafDocumentDetectorUIInstructionScreenConfiguration(
                 enable: true,
                 captureTitle: 'Capture Title',
-                captureSteps: ['Capture Step 1', 'Capture Step 2'],
+                captureSteps: const ['Capture Step 1', 'Capture Step 2'],
                 uploadTitle: 'Upload Title',
-                uploadSteps: ['Upload Step 1', 'Upload Step 2'],
+                uploadSteps: const ['Upload Step 1', 'Upload Step 2'],
                 buttonText: 'Button Text',
               ),
           documentSelectionScreen:
-              CafDocumentDetectorUIDocumentSelectionScreenConfiguration(
+              const CafDocumentDetectorUIDocumentSelectionScreenConfiguration(
                 title: 'Document Selection Title',
                 description: 'Document Selection Description',
               ),
@@ -251,7 +251,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
       // Face Liveness Configuration (if enabled)
       CafFaceLivenessConfiguration? faceLivenessConfig;
       if (_useFaceLiveness) {
-        faceLivenessConfig = CafFaceLivenessConfiguration(
+        faceLivenessConfig = const CafFaceLivenessConfiguration(
           loading: true,
           debugModeEnabled: true,
           payFaceDebugMode: true, // Debug
@@ -269,7 +269,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
             title: 'Face Liveness',
             description:
                 'Position your face in the center and follow the instructions',
-            steps: [
+            steps: const [
               'Center your face',
               'Follow the instructions',
               'Stay still',
@@ -279,7 +279,7 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
         );
       }
 
-      await _cafSdk.initializeCafSdk(
+      final success = await _cafSdk.initializeCafSdk(
         cafSdkConfiguration: config,
         documentDetectorConfiguration: documentDetectorConfig,
         documentDetectorUIConfiguration: documentDetectorUIConfig,
@@ -287,14 +287,26 @@ class _CafSdkExamplePageState extends State<CafSdkExamplePage> {
         faceLivenessUIConfiguration: faceLivenessUIConfig,
       );
 
-      if (mounted) {
+      if (!mounted) return;
+
+      if (!success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('CAF SDK initialized successfully!'),
-            backgroundColor: Colors.green,
+          const SnackBar(
+            content: Text(
+              'CAF SDK initialization failed. Check the event log for details.',
+            ),
+            backgroundColor: Colors.orange,
           ),
         );
+        return;
       }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CAF SDK initialized successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

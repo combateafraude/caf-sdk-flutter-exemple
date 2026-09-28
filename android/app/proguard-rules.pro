@@ -155,4 +155,22 @@
 # Preserve Kotlin and kotlinx classes.
 -keep class kotlin.** { *; }
 -keep class kotlinx.** { *; }
+# Preserve all FortFace/PayFace SDK classes to prevent obfuscation issues
+-keep class br.com.fortface.** { *; }
+-keep interface br.com.fortface.** { *; }
+-keepclassmembers class br.com.fortface.** { *; }
+# Keep all inner classes and enums
+-keepclassmembers class br.com.fortface.**$* { *; }
+# Preserve JSON classes completely (critical for PayFace)
+-keep class org.json.** { *; }
+-keepclassmembers class org.json.** { *; }
+# Preserve JSON-related classes used by PayFace SDK
+-keepclassmembers class * {
+    @org.json.** *;
+}
+# Suppress warnings for PayFace SDK
+-dontwarn br.com.fortface.**
+# If R8 reports missing lint stub classes shipped with the SDK
+-dontwarn com.android.tools.lint.**
+-dontwarn io.caf.sdk.common.jvmshared.lint.**
 ### END CAF - Combate a Fraude ##################################################

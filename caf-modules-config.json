@@ -7,5 +7,6 @@
     "iproov-lite",
     "payface",
     "facetec"
-  ]
+  ],
+  "fingerprint": true
 }
