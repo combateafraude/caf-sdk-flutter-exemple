@@ -26,7 +26,9 @@ This example app showcases the main features of the CAF SDK plugin:
 
 - Flutter SDK (>=3.3.0)
 - Dart SDK (^3.9.0)
-- CAF SDK native libraries
+- CAF SDK Flutter plugin `caf_sdk` **2.2.0**
+- Android `minSdk` 26, `compileSdk` / `targetSdk` 36 (Android 16)
+- iOS deployment target 15.0
 - Android Studio / Xcode for platform-specific setup
 
 ### Installation
@@ -45,6 +47,25 @@ This example app showcases the main features of the CAF SDK plugin:
    ```bash
    flutter run
    ```
+
+### Module selection (`caf-modules-config.json`)
+
+The file at the project root controls which native modules and Face Liveness providers are bundled. This example enables all modules, iProov Lite + PayFace + FaceTec, and the optional Fingerprint module (requires backend enablement):
+
+```json
+{
+  "documentDetector": true,
+  "faceLiveness": true,
+  "documentDetectorUI": true,
+  "faceLivenessUI": true,
+  "livenessProviders": [
+    "iproov-lite",
+    "payface",
+    "facetec"
+  ],
+  "fingerprint": true
+}
+```
 
 ## Platform Setup (The app already has these settings. Be sure to apply them to your standalone app)
 
@@ -76,14 +97,15 @@ repositories {
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
    ```
 
-3. **Minimum SDK**: Verify `android/app/build.gradle.kts` has:
+3. **Minimum SDK / Android 16**: Verify `android/app/build.gradle.kts` has:
    ```kotlin
     android {
         defaultConfig {
-            minSdk =  26
+            minSdk = 26
         }
     }
    ```
+   CAF SDK 2.2.0 supports Android 16 (`compileSdk` / `targetSdk` 36). This example uses `flutter.compileSdkVersion` / `flutter.targetSdkVersion`; keep your Flutter SDK recent enough for API 36.
 
 ### iOS
 
@@ -94,13 +116,12 @@ repositories {
     <string>Allows access to the camera to capture document images.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allows access to stored files and images for processing, if necessary.</string>
-    <key>UILaunchStoryboardName</key>
    ```
 
 2. **Deployment Target**: Ensure `ios/Podfile` has:
 
    ```ruby
-   platform :ios, '11.0'
+   platform :ios, '15.0'
    ```
 
 3. **Development Team**: When opening the project in Xcode, you'll need to configure your Apple Developer Team ID for code signing:
